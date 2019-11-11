@@ -2,6 +2,10 @@
 using System.Drawing;
 using System.Windows.Forms;
 using System.Net.Mail;
+using System.Net;
+using System.IO;
+using System.Collections.Generic;
+using Newtonsoft.Json;
 
 namespace RemoteFamilyITSupport
 {
@@ -33,12 +37,40 @@ namespace RemoteFamilyITSupport
             SendMail();
         }
 
-        private static void SendMail()
+        public static void SendMail()
         {
             MailMessage mail = new MailMessage();
             SmtpClient SmtpServer = new SmtpClient("smtp.gmail.com");
-            mail.From = new MailAddress("");
-            mail.To.Add = ("");
+
+
+            StreamReader r = new StreamReader(@"..\..\credentials.json");
+            string json = r.ReadToEnd();
+            List<Credentials> items = JsonConvert.DeserializeObject<List<Credentials>>(json);
+            
+
+            
+            MessageBox.Show(items[0].username);
+            mail.From = new MailAddress(items[0].username);
+            mail.To.Add(items[0].reciever);
+            mail.Subject = "Screenshot";
+
+            Attachment attachment;
+            attachment = new Attachment("Screenshot.png");
+            mail.Attachments.Add(attachment);
+
+            SmtpServer.Port = 587;
+            SmtpServer.Credentials = new NetworkCredential(items[0].username, items[0].password);
+            SmtpServer.EnableSsl = true;
+
+            SmtpServer.Send(mail);
+            MessageBox.Show("mail Send");
+        }
+
+        public class Credentials
+        {
+            public string reciever { get; set; }
+            public string username { get; set; }
+            public string password { get; set; }
         }
     }
 
